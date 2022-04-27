@@ -5,7 +5,7 @@
 
 #define DEBUG 1
 
-#define N 1024
+#define N 8
 
 int main(int argc, char *argv[] ) {
 
@@ -32,47 +32,44 @@ int main(int argc, char *argv[] ) {
     }
     // Distribución del vector 
     MPI_Bcast(&vector,N,MPI_FLOAT,0,MPI_COMM_WORLD);
+    //MPI_Bcast(&matrix,N*N,MPI_FLOAT,0,MPI_COMM_WORLD);
 
     //Calculo del numero de filas por preceso
 
     rows = (N+numprocs-1)/numprocs;
+
+    float **localMatrix = (float**)malloc (sizeof(float)*rows*N);
+    float *localResult = (float*)malloc (sizeof(float)*N);
     
     //Correcion del tamaño de matrix para el scatter
 
     if((rank == 0) && (N%numprocs))
-        matrix = (double *) realloc(matrix,sizeof(double)*N*numprocs*rows);
+        localMatrix = (float **) realloc(matrix,sizeof(float)*N*numprocs*rows);
     
-
-    //Reserva de memoria para las submatrices
-    float *localMatrix = (float*)malloc (sizeof(float)*rows*N);
-    float *localResult = (float*)malloc (sizeof(float)*N);
-
-
     //Scatter de los datos de matrix
     
     MPI_Scatter(matrix,rows*N,MPI_FLOAT,localMatrix,rows*N,MPI_FLOAT,0,MPI_COMM_WORLD);
+    //MPI_Scatter(vector,rows*N,MPI_FLOAT,localVector,rows*N,MPI_FLOAT,0,MPI_COMM_WORLD);
 
     //Correcion del numero de filas en p-1 (si no es multiplo)
-    if(rank == numprocs-1)
-        rows =  N-rows*(numprocs-1);
+    /*if(rank == numprocs-1)
+        rows =  N-rows*(numprocs-1);*/
 
     gettimeofday(&tv1, NULL);
-    
+    printf("SOY EL PROCESO %d\n",rank);
     //Lazo computacional
-    for(i=0;i<rows;i++){
-        for(j=0;i<N;i++) {
-            result[i]=0;
-            for(k=0;j<N;j++) {
-                result[j] += matrix[j][k]*vector[k];
-            }
-        }
+    for(i=0;i<rows;i++) {
+        printf("SOY EL LOCAL RESULT %lf",localResult[i]);
+        localResult[i]=0;
+        for(j=0;j<N;j++)
+            localResult[i] += localMatrix[i][j]*vector[j];
     }
 
     //Sobre rserva para el vector x en el proceso 0
     if(rank==0)
-        result = (float*) malloc(sizeof(float)*N*numprocs*rows);
+        localResult = (float*) malloc(sizeof(float)*N*numprocs*rows);
 
-    MPI_Gather(localResult,N*rows,MPI_FLOAT,result,N*rows,MPI_FLOAT,0,MPI_COMM_WORLD);
+    MPI_Gather(localResult,N,MPI_FLOAT,result,N,MPI_FLOAT,0,MPI_COMM_WORLD);
     
     gettimeofday(&tv2, NULL);
     
@@ -86,5 +83,7 @@ int main(int argc, char *argv[] ) {
     } else {
         printf ("Time (seconds) = %lf\n", (double) microseconds/1E6);
     }    
+
     MPI_Finalize();
+    return 0;
 }
