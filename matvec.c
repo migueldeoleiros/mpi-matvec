@@ -5,7 +5,7 @@
 
 #define DEBUG 1
 
-#define N 8
+#define N 1024
 
 int main(int argc, char *argv[] ) {
 
@@ -55,8 +55,8 @@ int main(int argc, char *argv[] ) {
     MPI_Scatter(matrix,rows*N,MPI_FLOAT,localMatrix,rows*N,MPI_FLOAT,0,MPI_COMM_WORLD);
 
     //Correcion del numero de filas en p-1 (si no es multiplo)
-    /*if(rank == numprocs-1)
-        rows =  N-rows*(numprocs-1);*/
+    if(rank == numprocs-1)
+        rows =  N-rows*(numprocs-1);
 
     gettimeofday(&tv1, NULL);
     printf("SOY EL PROCESO %d\n",rank);
@@ -87,10 +87,10 @@ int main(int argc, char *argv[] ) {
         for(i=0;i<N;i++) {
             printf(" %f \t ",result[i]);
         }
+        printf("\n");
     } else {
         printf ("Time (seconds) = %lf\n", (double) microseconds/1E6);
     }    
-
     MPI_Finalize();
     return 0;
 }
