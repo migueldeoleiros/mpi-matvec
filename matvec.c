@@ -25,7 +25,6 @@ int main(int argc, char *argv[] ) {
     int sizes[numprocs], desp[numprocs];
 
     // Initialize Matrix and Vector
-    if(rank==0){
         if(rank==0){
             for(i=0;i<N;i++) {
                 vector[i] = i;
@@ -33,7 +32,6 @@ int main(int argc, char *argv[] ) {
                     matrix[i][j] = i+j;
             }
         }
-    }
 
     gettimeofday(&tv_transfer1, NULL);
     // distribución del vector 
@@ -49,8 +47,8 @@ int main(int argc, char *argv[] ) {
     if(rank == numprocs-1)
         rows = rows+(N%numprocs);
 
-    float localMatrix[rows][N];
-    float localResult[rows];
+    float *localMatrix = malloc(sizeof(float)*N*rows);
+    float *localResult = malloc(sizeof(float)*N);
 
     // creamos sentcounts y displ para statterv
     if(rank==0){
@@ -61,9 +59,8 @@ int main(int argc, char *argv[] ) {
                 sizes[i] = rows*N;
         }
         desp[0] = 0;
-        for(i=1;i<numprocs;i++){
+        for(i=1;i<numprocs;i++)
             desp[i] = desp[i-1] + sizes[i-1];
-        }
     }
     
     gettimeofday(&tv_transfer1, NULL);
@@ -78,9 +75,8 @@ int main(int argc, char *argv[] ) {
     //Lazo computacional
     for(i=0;i<rows;i++) {
         localResult[i]=0;
-        for(j=0;j<N;j++){
-            localResult[i] += localMatrix[i][j]*vector[j];
-        }
+        for(j=0;j<N;j++)
+            localResult[i] += localMatrix[j+(i*N)] * vector[j];
     }
 
     gettimeofday(&tv_compu2, NULL);
@@ -89,7 +85,7 @@ int main(int argc, char *argv[] ) {
     if(rank==0){
         for(i=0;i<numprocs;i++){
             if(i==numprocs-1)
-                sizes[i] =  rows+(N%numprocs);
+                sizes[i] = rows+(N%numprocs);
             else
                 sizes[i] = rows;
         }
