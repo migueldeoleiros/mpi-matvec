@@ -5,7 +5,7 @@
 
 #define DEBUG 1
 
-#define N 100
+#define N 1024
 
 int main(int argc, char *argv[] ) {
 
@@ -45,7 +45,6 @@ int main(int argc, char *argv[] ) {
 
     //Calculo del numero de filas por proceso
     rows = N/numprocs;
-
     //Correcion del numero de filas en p-1 (si no es multiplo)
     if(rank == numprocs-1)
         rows = rows+(N%numprocs);
@@ -53,6 +52,7 @@ int main(int argc, char *argv[] ) {
     float localMatrix[rows][N];
     float localResult[rows];
 
+    // creamos sentcounts y displ para statterv
     if(rank==0){
         for(i=0;i<numprocs;i++){
             if(i==numprocs-1)
@@ -82,13 +82,10 @@ int main(int argc, char *argv[] ) {
             localResult[i] += localMatrix[i][j]*vector[j];
         }
     }
-    printf("proceso %d : \n", rank);
-    for(i=0;i<rows;i++)
-        printf(" %lf ", localResult[i]);
-    printf("\n");
 
     gettimeofday(&tv_compu2, NULL);
 
+    // creamos sentcounts y displ para gatherv
     if(rank==0){
         for(i=0;i<numprocs;i++){
             if(i==numprocs-1)
@@ -112,10 +109,10 @@ int main(int argc, char *argv[] ) {
     compu_time = (tv_compu2.tv_usec - tv_compu1.tv_usec)+ 1000000
                  * (tv_compu2.tv_sec - tv_compu1.tv_sec);
 
-    /* printf ("Computational Time (seconds) of process %d = %lf\n", */
-    /*         rank, (double) compu_time/1E6); */
-    /* printf ("Transfer Time (seconds) of process %d = %lf\n", */
-    /*         rank, (double) transfer_time/1E6); */
+    printf ("Computational Time (seconds) of process %d = %lf\n",
+            rank, (double) compu_time/1E6);
+    printf ("Transfer Time (seconds) of process %d = %lf\n",
+            rank, (double) transfer_time/1E6);
     
     /*Display result */
     MPI_Barrier(MPI_COMM_WORLD);
