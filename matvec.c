@@ -3,13 +3,13 @@
 #include <mpi.h>
 #include <stdlib.h>
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define N 1024
 
 int main(int argc, char *argv[] ) {
 
-    int i, j,k,numprocs,rank;
+    int i,j,k,numprocs,rank;
     int rows;
     int compu_time, transfer_time;
     float vector[N];
@@ -83,18 +83,13 @@ int main(int argc, char *argv[] ) {
         for(j=0;j<N;j++)
             localResult[i] += localMatrix[j+(i*N)] * vector[j];
     }
-
     gettimeofday(&tv_compu2, NULL);
 
     // creamos sentcounts y displ para gatherv
     if(rank==0){
         for(i=0;i<numprocs;i++){
-            if(i==numprocs-1)
-                sizes[i] = rows+(N%numprocs);
-            else
-                sizes[i] = rows;
+            sizes[i] = sizes[i]/N;
         }
-        desp[0] = 0;
         for(i=1;i<numprocs;i++){
             desp[i] = desp[i-1] + sizes[i-1];
         }
@@ -123,7 +118,7 @@ int main(int argc, char *argv[] ) {
         /*Display times */
         printf ("process %d:\t Computational Time = %lf\t Transfer Time = %lf\n",
                 rank, (double) compu_time/1E6, (double) transfer_time/1E6);
-        }    
+    }    
 
     // free memory
     if(rank==0){
