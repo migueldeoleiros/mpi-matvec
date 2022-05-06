@@ -11,7 +11,7 @@ int main(int argc, char *argv[] ) {
 
     int i,j,k,numprocs,rank;
     int rows;
-    int compu_time, transfer_time;
+    float compu_time, transfer_time;
     float vector[N];
     float *matrix;
     float *result;
@@ -20,12 +20,14 @@ int main(int argc, char *argv[] ) {
     float *localMatrix;
     float *localResult;
 
+    int *sizes;
+    int *desp;
+
     MPI_Status status;
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     
-    int sizes[numprocs], desp[numprocs];
 
     // Initialize Matrix and Vector
     if(rank==0){
@@ -57,6 +59,8 @@ int main(int argc, char *argv[] ) {
 
     // creamos sentcounts y displ para statterv
     if(rank==0){
+        sizes = malloc(sizeof(int)*numprocs);
+        desp = malloc(sizeof(int)*numprocs);
         for(i=0;i<numprocs;i++){
             if(i==numprocs-1)
                 sizes[i] =  N*(rows+(N%numprocs));
@@ -124,6 +128,8 @@ int main(int argc, char *argv[] ) {
     if(rank==0){
         free(matrix);
         free(result);
+        free(sizes);
+        free(desp);
     }
     free(localMatrix);
     free(localResult);
