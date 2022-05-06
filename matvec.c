@@ -9,12 +9,12 @@
 
 int main(int argc, char *argv[] ) {
 
-    int i,j,k,numprocs,rank;
+    int i,j,numprocs,rank;
     int rows;
-    float compu_time, transfer_time;
     float vector[N];
     float *matrix;
     float *result;
+    float compu_time, transfer_time;
     struct timeval tv_compu1, tv_compu2, tv_transfer1, tv_transfer2;
 
     float *localMatrix;
