@@ -1,0 +1,17 @@
+* P3 Descomposición de dominio: producto matriz-vector
+Calcular el vector resultante del producto de una matriz y un vector.
+
+Dividir la matriz entre p procesos, cada uno con /m=N/p/ filas
+Cada tarea se encargará de calcular /N/p/ filas del vector resultado
+
+Nuestro trabajo fue:
+- Hacer una implementación SPMD
+- Inicializar la matriz en el proceso 0
+- Distribuir datos a todos los procesos con operaciones colectivas
+- Recoger el vector resultante con operaciones colectivas
+- Hacer la entrada y salida por el proceso 0
+- Imprimir por separado tiempo de comunicaciones y de computación de cada proceso
+
+El vector lo enviamos a todos los procesos con un /MPI_Bcast/, para la matriz cada proceso solo tendrá la parte que necesita, que enviamos con /MPI_Scatterv/, para juntar los resultados usamos /MPI_Gatherv/ de forma inversa a el Scatter previo. 
+
+Para calcular los tiempos usamos /gettimeofday()/ lo que puede dificultar un poco la lectura del código, asimismo, para las funciones colectivas /MPI_Gatherv/ y /MPI_Scatterv/ necesitamos crear dos arrays, uno con el desplazamiento de los trozos a enviar y otro con el tamaño, lo que añade varios bucles que a simple vista parecen complejos, pero no afectan demasiado al funcionamiento del programa.
